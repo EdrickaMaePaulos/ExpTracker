@@ -1,0 +1,33 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+    <h1>Add New Item</h1>
+    <form action="/add" method="post">
+        <div class="mb-3">
+            <label for="name" class="form-label">Item Name</label>
+            <input type="text" class="form-control" id="name" name="name" required>
+        </div>
+         <div class="mb-3">
+            <label for="location" class="form-label">Location</label>
+            <input type="text" class="form-control" id="location" name="location">
+        </div>
+        <div class="mb-3">
+            <label for="category" class="form-label">Category</label>
+            <input type="text" class="form-control" id="category" name="category">
+        </div>
+        <div class="mb-3">
+            <label for="manufacturedDate" class="form-label">Manufactured Date</label>
+            <input type="date" class="form-control" id="manufacturedDate" name="manufacturedDate">
+        </div>
+        <div class="mb-3">
+            <label for="expiration_date" class="form-label">Expiration Date</label>
+            <input type="date" class="form-control" id="expiration_date" name="expiration_date">
+        </div>
+        <div class="mb-3">
+            <label for="notes" class="form-label">Notes</label>
+            <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Add Item</button>
+        <a href="/" class="btn btn-secondary">Cancel</a>
+    </form>
+{% endblock %}
