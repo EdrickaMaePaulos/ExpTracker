@@ -1,0 +1,109 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<!-- Notifications Section -->
+<h1>Expiration Tracker</h1>
+<h2>Notifications</h2>
+{% if notifications %}
+    <div class="alert alert-warning">
+        <ul>
+            {% for notification in notifications %}
+                <li>
+                    <strong>{{ notification.name }}</strong> in <strong>{{ notification.storage }}</strong>
+                    has <span
+                        class="{% if notification.days_remaining <= 0 %}text-danger{% elif notification.days_remaining <= 3 %}text-warning{% else %}text-success{% endif %}">
+                        {{ notification.days_remaining }} days left
+                    </span>.
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% else %}
+    <div class="alert alert-info">No items expiring in the next 7 days.</div>
+{% endif %}
+
+<!-- Storage List Section -->
+<h2>Storages</h2>
+<ul class="list-group">
+    {% for storage in storages %}
+        <li class="list-group-item">
+            <a href="/?storageID={{ storage.storageID }}">{{ storage.name }}</a>
+        </li>
+    {% endfor %}
+</ul>
+
+<!-- Items in Selected Storage -->
+{% if items_in_storage %}
+    <h3>Items in Storage</h3>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Manufactured Date</th>
+                <th>Expiration Date</th>
+                <th>Days Remaining</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items_in_storage %}
+                <tr
+                    class="{% if item.days_remaining is not none %}
+                            {% if item.days_remaining < 0 %}
+                                table-danger
+                            {% elif item.days_remaining <= 3 %}
+                                table-warning
+                            {% elif item.days_remaining <= 7 %}
+                                table-info
+                            {% endif %}
+                            {% endif %}">
+                    <td>{{ item.name }}</td>
+                    <td>{{ item.category }}</td>
+                    <td>{{ item.manufactured_date.strftime('%Y-%m-%d') if item.manufactured_date else 'N/A' }}</td>
+                    <td>{{ item.expiration_date.strftime('%Y-%m-%d') if item.expiration_date else 'N/A' }}</td>
+                    <td>
+                        {% if item.days_remaining is not none %}
+                            {% if item.days_remaining < 0 %}
+                                <span class="text-danger">Expired ({{ item.days_remaining }} days)</span>
+                            {% elif item.days_remaining == 0 %}
+                                <span class="text-warning">Expires today</span>
+                            {% else %}
+                                {{ item.days_remaining }} days
+                            {% endif %}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                    <td>{{ item.notes }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
+<!-- Buttons Section -->
+<div class="mt-3">
+    <!-- Plus button -->
+    <button class="btn btn-success" onclick="showAddOptions()">+</button>
+    <div id="addOptions" style="display: none;">
+        <a href="/addItem" class="btn btn-primary">Add New Item</a>
+        <a href="/addStorage" class="btn btn-primary">Add New Storage</a>
+        <a href="/addCategory" class="btn btn-primary">Add New Category</a>
+    </div>
+
+    <!-- List button -->
+    <a href="/list" class="btn btn-secondary">List</a>
+</div>
+
+<script>
+    function showAddOptions() {
+        const addOptions = document.getElementById('addOptions');
+        if (addOptions.style.display === 'none') {
+            addOptions.style.display = 'block';
+        } else {
+            addOptions.style.display = 'none';
+        }
+    }
+</script>
+{% endblock %}
