@@ -1,0 +1,187 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<!-- Notifications Section -->
+<div class="smartstock-page">
+    <div class="row">
+        <div class="dashboard">
+            <!-- Left side: Welcome and Storage Cards -->
+            <div class="dashboard-left">
+                <div class="dashboard-left-top">
+                    <div class="tagline-container">
+                        <div class="tagline">
+                            <p class="aboutus-text">About Us</p>
+                            <p class="tagline-1">Welcome to SmartStock!</p>
+                            <p class="tagline-2">where expiration dates meet their match! Tired of discovering spoiled food, expired medication,<br> or outdated supplies?</p>
+                            <p class="read-more">Read more...</p>
+                        </div>
+                        <div class="logo-container">
+                            <img class="smartstock-logo-6" src="/static/Icons/smartstock.png">
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Storage Categories Section -->
+                <div class="storage-list-1" >
+                    <div class="storage-box-1">
+                        <!-- Add New Storage Card -->
+                        <div class="add-storage-1">
+                            <div class="add-storage-2">
+                                <a onclick="showAddOptions()">
+                                    <img src="/static/Icons/Storage_add.png" class="storagecards">
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Existing Storage Cards -->
+                        {% for storage in storages %}
+                        <div class="add-storage-1">
+                            <a href="/home?storageID={{ storage.storageID }}" class="text-decoration-none">
+                                <div class="card">
+                                    <div>
+                                        {% if storage.name|lower == 'refrigerator' %}
+                                            <img src="/static/Icons/refrigerator.png" alt="Refrigerator" class="storagecards">
+                                        {% elif storage.name|lower == 'freezer' %}
+                                            <img src="/static/Icons/freezer.png" alt="Freezer" class="storagecards">
+                                        {% elif storage.name|lower == 'pantry' %}
+                                            <img src="/static/Icons/pantry.png" alt="Pantry" class="storagecards">
+                                        {% elif storage.name|lower == 'medical cabinet' %}
+                                            <img src="/static/Icons/medical-cabinet.png" alt="Medical Cabinet" class="storagecards">
+                                        {% elif storage.name|lower == 'personal care' %}
+                                            <img src="/static/Icons/personal-care.png" alt="Personal Care" class="storagecards">
+                                        {% else %}
+                                            <img src="/static/Icons/edricka.png" alt="Storage" class="storagecards">
+                                        {% endif %}
+                                        <h5 class="card-title">{{ storage.name|upper }}</h5>
+                                    </div>
+
+                                </div>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Buttons Section -->
+                <div class="mt-3">
+                    <!-- Plus button -->
+                    <div id="addOptions" style="display: none;">
+                        <a href="/addItem" class="btn btn-primary">Add New Item</a>
+                        <a href="/addStorage" class="btn btn-primary">Add New Storage</a>
+                        <a href="/addCategory" class="btn btn-primary">Add New Category</a>
+                    </div>
+                </div>
+
+                <!-- Items in Selected Storage -->
+                {% if items_in_storage %}
+                <h3 class="mt-4">Items in Storage</h3>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Manufactured Date</th>
+                            <th>Expiration Date</th>
+                            <th>Days Remaining</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items_in_storage %}
+                        <tr class="{% if item.days_remaining is not none %}
+                                    {% if item.days_remaining < 0 %} table-danger
+                                    {% elif item.days_remaining <= 3 %} table-warning
+                                    {% elif item.days_remaining <= 7 %} table-info
+                                    {% endif %}
+                                    {% endif %}">
+                            <td>{{ item.name }}</td>
+                            <td>{{ item.category }}</td>
+                            <td>{{ item.manufactured_date.strftime('%Y-%m-%d') if item.manufactured_date else 'N/A' }}</td>
+                            <td>{{ item.expiration_date.strftime('%Y-%m-%d') if item.expiration_date else 'N/A' }}</td>
+                            <td>
+                                {% if item.days_remaining is not none %}
+                                    {% if item.days_remaining < 0 %}
+                                        <span class="text-danger">Expired ({{ item.days_remaining }} days)</span>
+                                    {% elif item.days_remaining == 0 %}
+                                        <span class="text-warning">Expires today</span>
+                                    {% else %}
+                                        {{ item.days_remaining }} days
+                                    {% endif %}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>{{ item.notes }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% endif %}
+            </div>
+
+            <!-- Right side: Notifications -->
+                <div class="notification-container">
+                    <div>
+                        <h3 class="notification-text">Notifications</h3>
+                    </div>
+
+                    <div class="notification">
+                        {% if notifications %}
+                            <div class="notification-container">
+                                {% for notification in notifications %}
+                                    <div class="notification
+                                        {% if notification.days_remaining <= 0 %}bg-dark bg-opacity-25
+                                        {% elif notification.days_remaining <= 1 %}bg-danger bg-opacity-25
+                                        {% elif notification.days_remaining <= 3 %}bg-warning bg-opacity-25
+                                        {% elif notification.days_remaining <= 7 %}bg-info bg-opacity-25
+                                        {% else %}bg-info bg-opacity-25
+                                        {% endif %}">
+
+                                        <div>
+                                            <h6 class="category-name">{{ notification.name }}</h6>
+                                            <h4>{{ notification.storage }}</h4>
+                                        </div>
+                                        <div class="expiry-date">
+
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="expiry-indicator
+                                                {% if notification.days_remaining <= 0 %}bg-danger
+                                                {% elif notification.days_remaining <= 3 %}bg-warning
+                                                {% else %}bg-success
+                                                {% endif %}">
+                                                {% if notification.days_remaining <= 0 %}
+                                                    Expired
+                                                {% elif notification.days_remaining == 1 %}
+                                                    Today
+                                                {% else %}
+                                                    {{ notification.days_remaining }} days
+                                                {% endif %}
+                                            </span>
+                                            <div><small class="expiry-date">{{ notification.expiration_date }}</small></div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info m-3">No items expiring in the next 7 days.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+    </div>
+</div>
+
+<script>
+    function showAddOptions() {
+        const addOptions = document.getElementById('addOptions');
+        if (addOptions.style.display === 'none') {
+            addOptions.style.display = 'block';
+        } else {
+            addOptions.style.display = 'none';
+        }
+    }
+</script>
+
+{% endblock %}

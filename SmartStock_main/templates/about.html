@@ -1,0 +1,184 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<section class="about-page-container" id="about-page-container">
+    <div class="gradient-background-4"> </div>
+                    <img class="smartstock-logo-4" src="images/smartstock.png">
+                    <div class="horizontal-line-1"></div>
+                    <i class="fi fi-rs-home nav-icon" id="home-icon"></i>
+                    <i class="fi fi-rr-list nav-icon" id="list-icon"></i>
+                    <i class="fi fi-rr-settings nav-icon" id="settings-icon"></i>
+                    <i class="fi fi-rr-interrogation nav-icon" id="about-icon"></i>
+                    <i class="fi fi-rs-exit logout-icon"></i>
+                </div>
+                <div class="curve-rectangle">
+                    <div class="header">
+                        <div class="header-profile">
+                            <i class="fi fi-rs-user user-icon"></i>
+                            <p class="hello-username">Hello, @username!</p>
+                        </div>
+                        <div class="header-date">
+                            <p class="as-of">AS OF</p>
+                            <p class="date">March 29, 2025</p>
+                        </div>
+                    </div>
+                    <div class="inside-rectangle">
+                        <input type="radio" name="tab" id="tab1" checked hidden>
+                        <input type="radio" name="tab" id="tab2" hidden>
+                        <input type="radio" name="tab" id="tab3" hidden>
+
+                        <div class="tab-wrapper">
+                            <div class="tab-container">
+                                <label for="tab1" class="tab">About this website</label>
+                                <label for="tab2" class="tab">Developers</label>
+                                <label for="tab3" class="tab">How to use</label>
+                            </div>
+                        </div>
+
+                        <div class="tab-section tab1-content about-this-website" id="about-tab">
+                            <div class="about-us-section">
+                                <h2 class="about-heading">Tired of the endless cycle<br>of buy, forget, and toss?<br>SmartStock breaks the<br>pattern.</h2>
+                                <p class="about-description">SmartStock is an intuitive platform transforms how you track<br>what matters, turning chaotic expiration management into<br>
+                                    effortless organization. With SmartStock, you're not just<br>tracking dates - you're unlocking a more efficient, less<br>
+                                    wasteful lifestyle. Smart Tracking, Smarter Living: your path<br>to perfectly timed consumption starts here.
+                                </p>
+                            </div>
+                            <img class="computer" src="images/computer.png">
+                        </div>
+
+                        <div class="tab-section tab2-content" id="dev-tab">
+                            <div class="developers-section">
+                                <h1 class="meet">Meet our Team</h1>
+                                <div class="developers-grid">
+                                    <div class="team-member">
+                                        <img src="images/edricka.png">
+                                        <div class="member-info">
+                                            <h1>Edricka Mae H. Paulos</h1>
+                                            <p style="margin-top: 8%">Project Manager</p>
+                                            <div class="social-icons-1">
+                                                <div class="social-icons-2">
+                                                    <a class="social-link" href="africakiarra.bu@gmail.com">
+                                                        <i class="fas fa-envelope"></i>
+                                                      </a>
+                                                </div>
+                                                <div class="social-icons-2">
+                                                      <a class="social-link" href="https://github.com/kiarraafrica" target="_blank">
+                                                        <i class="fab fa-github"></i>
+                                                      </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="team-member">
+                                        <img src="images/edricka.png">
+                                        <div class="member-info">
+                                            <h1>Nigel Hans G. Nunez</h1>
+                                            <p style="margin-top: 9%">Back-End Head</p>
+                                            <div class="social-icons-1">
+                                                <div class="social-icons-3">
+                                                    <a class="social-link" href="africakiarra.bu@gmail.com">
+                                                        <i class="fas fa-envelope"></i>
+                                                      </a>
+                                                </div>
+                                                <div class="social-icons-3">
+                                                      <a class="social-link" href="https://github.com/kiarraafrica" target="_blank">
+                                                        <i class="fab fa-github"></i>
+                                                      </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="team-member">
+                                        <img src="images/kiarra.jpg">
+                                        <div class="member-info">
+                                            <h1>Kiarra Francesca Gabrielle S. Africa</h1>
+                                            <p style="margin-top: 5%">Front-End Head</p>
+                                            <div class="social-icons-1">
+                                                <div class="social-icons-4">
+                                                    <a class="social-link" href="africakiarra.bu@gmail.com">
+                                                        <i class="fas fa-envelope"></i>
+                                                      </a>
+                                                </div>
+                                                <div class="social-icons-4">
+                                                      <a class="social-link" href="https://github.com/kiarraafrica" target="_blank">
+                                                        <i class="fab fa-github"></i>
+                                                      </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="team-member">
+                                        <img src="images/ayelet.png">
+                                        <div class="member-info">
+                                            <h1>Ayelet D'arcy C. De Castro</h1>
+                                            <p style="margin-top: 7%">Full-Stack Developer</p>
+                                            <div class="social-icons-1">
+                                                <div class="social-icons-5">
+                                                    <a class="social-link" href="africakiarra.bu@gmail.com">
+                                                        <i class="fas fa-envelope"></i>
+                                                      </a>
+                                                </div>
+                                                <div class="social-icons-5">
+                                                      <a class="social-link" href="https://github.com/kiarraafrica" target="_blank">
+                                                        <i class="fab fa-github"></i>
+                                                      </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="team-member">
+                                        <img src="images/kriztel.jpg">
+                                        <div class="member-info">
+                                            <h1>Kriztel C. Garcia</h1>
+                                            <p style="margin-top: 10%">Full-Stack Developer</p>
+                                            <div class="social-icons-1">
+                                                <div class="social-icons-6">
+                                                    <a class="social-link" href="africakiarra.bu@gmail.com">
+                                                        <i class="fas fa-envelope"></i>
+                                                      </a>
+                                                </div>
+                                                <div class="social-icons-6">
+                                                      <a class="social-link" href="https://github.com/kiarraafrica" target="_blank">
+                                                        <i class="fab fa-github"></i>
+                                                      </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="team-member">
+                                        <img src="images/genrique.png">
+                                        <div class="member-info">
+                                            <h1>Genrique Sean Arkin D. Balmes</h1>
+                                            <p style="margin-top: 6%">Full-Stack Developer</p>
+                                            <div class="social-icons-1">
+                                                <div class="social-icons-7">
+                                                    <a class="social-link" href="africakiarra.bu@gmail.com">
+                                                        <i class="fas fa-envelope"></i>
+                                                      </a>
+                                                </div>
+                                                <div class="social-icons-7">
+                                                      <a class="social-link" href="https://github.com/kiarraafrica" target="_blank">
+                                                        <i class="fab fa-github"></i>
+                                                      </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tab-section tab3-content how-to-use" id="how-to-tab">
+                            <div class="how-to-use-section">
+                                <h2 class="how-heading">Smart Tracking<br>Smarter Living</h2>
+                                <p class="how-text">with SmartStock</p>
+                                <p class="how-description">SmartStock is an innovative website that addresses critical environmental<br> challenges by minimizing waste, optimizing resource consumption, and<br>
+                                promoting sustainable living practices. By providing a comprehensive<br>digital platform for tracking exprication dates of food, medicines, and<br>
+                                personal care products, the website directly contributes to reducing<br>unnecessary waste and supporting ecological conservation efforts.</p>
+                            </div>
+                            <img class="computer-2" src="images/computer.png">
+                        </div>
+                    </div>
+                </div>
+            </section>
+{% endblock %}
