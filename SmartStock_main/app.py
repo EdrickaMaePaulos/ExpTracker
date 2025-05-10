@@ -1,6 +1,7 @@
 from datetime import datetime
+from uuid import uuid4
 
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, current_app
 from flask_mysqldb import MySQL
 import os
 from dotenv import load_dotenv
@@ -22,6 +23,12 @@ mysql = MySQL(app)
 
 app.secret_key = os.getenv('SECRET_KEY', 'your_secret_key')
 
+UPLOAD_FOLDER = 'static/uploads'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'svg'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def login_required(f):
     @wraps(f)
@@ -36,8 +43,8 @@ def login_required(f):
 
 @app.route('/')
 def welcome():
-    #if 'user_id' in session:
-        #return redirect(url_for('home'))
+    if 'user_id' in session:
+        return redirect(url_for('home'))
     return render_template('index.html')
 
 
@@ -144,7 +151,7 @@ def signout():
     return redirect(url_for('welcome'))
 
 
-@app.route('/index', methods=['GET', 'POST'])
+@app.route('/home', methods=['GET', 'POST'])
 @login_required
 def home():
     user_id = session['user_id']
@@ -253,8 +260,9 @@ def home():
 def item_list():
     user_id = session['user_id']
     username = session['username']
-    request.args.get('storageID')
 
+    search_query = request.args.get('search', '').strip()
+    storage_id = request.args.get('storageID')
 
     # Create cursor
     cur = mysql.connection.cursor()
@@ -269,7 +277,7 @@ def item_list():
     cur.execute(query_storages, (user_id,))
     storages = cur.fetchall()
 
-    # Get all items for this user
+    # Base query for all items
     query = """
         SELECT i.*, s.name AS storage, c.name AS category,
         DATEDIFF(i.expiration_date, CURDATE()) AS days_remaining
@@ -277,31 +285,34 @@ def item_list():
         LEFT JOIN Storage s ON i.storageID = s.storageID
         LEFT JOIN Category c ON i.categoryID = c.categoryID
         WHERE i.user_id = %s
-        ORDER BY i.expiration_date ASC
     """
-    cur.execute(query, (user_id,))
+    params = [user_id]
+
+    # Apply search filter if provided
+    if search_query:
+        query += " AND (LOWER(i.name) LIKE LOWER(%s) OR LOWER(c.name) LIKE LOWER(%s))"
+        params.extend([f"%{search_query}%", f"%{search_query}%"])
+
+    query += " ORDER BY i.expiration_date ASC"
+    cur.execute(query, params)
     items = cur.fetchall()
 
-    # Get storage-filtered items if a storage is selected
-    storage_id = request.args.get('storageID')
+    # Filtered storage items (if any storage is selected)
     selected_storage = None
     items_in_storage = []
 
     if storage_id:
-        # Get the selected storage info
         cur.execute("SELECT storageID, name FROM Storage WHERE storageID = %s AND user_id = %s",
                     (storage_id, user_id))
         selected_storage = cur.fetchone()
 
-        # Get items in the selected storage
         query_items_in_storage = """
             SELECT i.*, s.name AS storage, c.name AS category,
             DATEDIFF(i.expiration_date, CURDATE()) AS days_remaining
             FROM items i
             LEFT JOIN Storage s ON i.storageID = s.storageID
             LEFT JOIN Category c ON i.categoryID = c.categoryID
-            WHERE i.storageID = %s
-            AND i.user_id = %s
+            WHERE i.storageID = %s AND i.user_id = %s
             ORDER BY i.expiration_date ASC
         """
         cur.execute(query_items_in_storage, (storage_id, user_id))
@@ -318,6 +329,7 @@ def item_list():
                            items=items)
 
 
+
 # Make sure these routes accept both GET and POST methods
 @app.route('/addItem', methods=['GET', 'POST'])
 @login_required
@@ -331,6 +343,7 @@ def add_item():
         manufactured_date = request.form.get('manufactured_date')
         expiration_date = request.form.get('expiration_date')
         notes = request.form.get('notes')
+
 
         # Verify storage and category belong to the user
         cur = mysql.connection.cursor()
@@ -381,19 +394,31 @@ def add_storage():
 
     if request.method == 'POST':
         storage_name = request.form.get('storage')
+        file = request.files.get('file')
+        photo_path = None
+
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            unique_filename = f"{uuid4().hex}_{filename}"
+            upload_path = os.path.join(current_app.root_path, 'static/uploads', unique_filename)
+            os.makedirs(os.path.dirname(upload_path), exist_ok=True)
+            file.save(upload_path)
+            photo_path = f'static/uploads/{unique_filename}'  # ✅ Correct path
+
+        print("PHOTO PATH SAVED TO DB:", photo_path)  # Debug log
 
         cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO Storage (name, user_id) VALUES (%s, %s)",
-                    [storage_name, user_id])
+        cur.execute("INSERT INTO Storage (name, user_id, photo) VALUES (%s, %s, %s)",
+                    (storage_name, user_id, photo_path))
         mysql.connection.commit()
         cur.close()
 
         flash('Storage added successfully!', 'success')
-        return redirect(url_for('index'))
+        return redirect(url_for('home'))
 
     return render_template('add_storage.html',
-                           username=session['username'],
-                           )
+                           username=session['username'])
+
 
 
 @app.route('/addCategory', methods=['GET', 'POST'])
@@ -411,7 +436,7 @@ def add_category():
         cur.close()
 
         flash('Category added successfully!', 'success')
-        return redirect(url_for('index'))
+        return redirect(url_for('home'))
 
     return render_template('add_category.html',
                            username=session['username']
@@ -513,6 +538,74 @@ def delete_item(id):
     flash('Item deleted successfully', 'success')
     return redirect(url_for('item_list'))
 
+
+@app.route('/editStorage/<int:storage_id>', methods=['GET', 'POST'])
+@login_required
+def edit_storage(storage_id):
+    user_id = session['user_id']
+
+    # Verify the storage belongs to the user
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM Storage WHERE storageID = %s AND user_id = %s",
+                (storage_id, user_id))
+    storage = cur.fetchone()
+
+    if not storage:
+        flash("Storage not found or you don't have permission to edit it", "danger")
+        return redirect(url_for('home'))  # Assuming there's a storage_list route
+
+    if request.method == 'POST':
+        name = request.form.get('name')
+
+
+        try:
+            # Update storage details
+            cur.execute("""
+                UPDATE Storage 
+                SET name = %s
+                WHERE storageID = %s AND user_id = %s
+            """, (name, storage_id, user_id))
+            mysql.connection.commit()
+
+            flash("Storage updated successfully!", "success")
+            return redirect(url_for('home'))  # Redirect to the storage list page after successful update
+        except Exception as e:
+            flash(f"An error occurred: {str(e)}", "danger")
+            return redirect(f'/editStorage/{storage_id}')
+
+    # Get the user's storage data for the form
+    cur.execute("SELECT * FROM Storage WHERE user_id = %s", (user_id,))
+    storages = cur.fetchall()
+    cur.close()
+
+    return render_template('edit_storage.html',
+                           username=session['username'],
+                           storage=storage,
+                           storages=storages)
+
+
+
+@app.route('/deleteStorage/<int:storageID>', methods=['GET', 'POST'])
+def delete_storage(storageID):
+    user_id = session['user_id']
+
+    cur = mysql.connection.cursor()
+    # First verify the item belongs to the user
+    cur.execute("SELECT storage.storageID FROM storage WHERE storageID = %s AND user_id = %s",
+                (storageID, user_id))
+    item = cur.fetchone()
+
+    if not item:
+        flash("Item not found or you don't have permission to delete it", "danger")
+        return redirect(url_for('item_list'))
+
+    cur.execute("DELETE FROM storage WHERE storageID = %s AND user_id = %s",
+                [storageID, user_id])
+    mysql.connection.commit()
+    cur.close()
+
+    flash('Storage deleted successfully', 'success')
+    return redirect(url_for('home'))
 @app.route('/about', methods=['GET', 'POST'])
 @login_required
 def about():
@@ -524,8 +617,6 @@ def about():
                     user_id=user_id,
                     username=username,
                     today_date=today_date,)
-
-
 
 if __name__ == '__main__':
     app.run(debug=True)

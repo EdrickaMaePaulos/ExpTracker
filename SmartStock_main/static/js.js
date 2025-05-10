@@ -160,3 +160,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.querySelector('input[name="tab"]:checked').dispatchEvent(new Event('change'));
 });
+

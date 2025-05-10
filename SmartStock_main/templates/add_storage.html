@@ -2,7 +2,10 @@
 
 {% block content %}
     <h1>Add New Storage</h1>
-    <form action="/addStorage" method="post">
+    <form action="/addStorage" method="post" enctype="multipart/form-data">
+        <div class="input-image">
+            <input type="file" name="image" accept="image/*" required>
+        </div>
         <div class="mb-3">
             <label for="storage" class="form-label">Storage Name</label>
             <input type="text" class="form-control" id="storage" name="storage" required>

@@ -1,43 +1,218 @@
 {% extends 'layout.html' %}
 
 {% block content %}
-    <h1>Add New Item</h1>
     <form action="/addItem" method="post">
+
+    <h1>Add New Item</h1>
+
+    <!-- Barcode Scanner Section -->
+    <div class="mb-3">
+        <label class="form-label">Scan Barcode</label>
+        <video id="scanner" width="100%" height="300" autoplay muted playsinline></video>
+        <p><strong>Scanned Barcode:</strong> <span id="barcode-result">None</span></p>
         <div class="mb-3">
-            <label for="name" class="form-label">Item Name</label>
-            <input type="text" class="form-control" id="name" name="name" required>
+            <button type="button" class="btn btn-success" id="start-scanner">Open Scanner</button>
+            <button type="button" class="btn btn-danger" id="stop-scanner">Stop Scanner</button>
         </div>
-        <div class="mb-3">
-            <label for="storageID" class="form-label">Storage</label>
-            <select class="form-control" id="storageID" name="storageID" required>
-                <option value="">Select Storage</option>
-                {% for storage in storages %}
-                    <option value="{{ storage.storageID }}">{{ storage.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="mb-3">
-            <label for="categoryID" class="form-label">Category</label>
-            <select class="form-control" id="categoryID" name="categoryID" required>
-                <option value="">Select Category</option>
-                {% for category in categories %}
-                    <option value="{{ category.categoryID }}">{{ category.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="mb-3">
-            <label for="manufactured_date" class="form-label">Manufactured Date</label>
-            <input type="date" class="form-control" id="manufactured_date" name="manufactured_date">
-        </div>
-        <div class="mb-3">
-            <label for="expiration_date" class="form-label">Expiration Date</label>
-            <input type="date" class="form-control" id="expiration_date" name="expiration_date">
-        </div>
-        <div class="mb-3">
-            <label for="notes" class="form-label">Notes</label>
-            <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
-        </div>
-        <button type="submit" class="btn btn-primary">Add Item</button>
-        <a href="/" class="btn btn-secondary">Cancel</a>
+
+    </div>
+
+
+
+    <!-- Manual Barcode Input Section -->
+    <div class="mb-3">
+        <label for="manual-barcode" class="form-label">Or Enter Barcode Manually</label>
+        <input type="text" class="form-control" id="manual-barcode" name="manual-barcode" placeholder="Enter Barcode" />
+    </div>
+
+    <!-- Barcode File Upload Section -->
+    <div class="mb-3">
+        <label for="barcode-upload" class="form-label">Or Upload Barcode File</label>
+        <input type="file" class="form-control" id="barcode-upload" name="barcode-upload" accept=".txt,.jpg,.png" />
+    </div>
+
+    <div class="mb-3">
+        <label for="name" class="form-label">Item Name</label>
+        <input type="text" class="form-control" id="name" name="name" required>
+    </div>
+    <div class="mb-3">
+        <label for="storageID" class="form-label">Storage</label>
+        <select class="form-control" id="storageID" name="storageID" required>
+            <option value="">Select Storage</option>
+            {% for storage in storages %}
+                <option value="{{ storage.storageID }}">{{ storage.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="categoryID" class="form-label">Category</label>
+        <select class="form-control" id="categoryID" name="categoryID" required>
+            <option value="">Select Category</option>
+            {% for category in categories %}
+                <option value="{{ category.categoryID }}">{{ category.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="manufactured_date" class="form-label">Manufactured Date</label>
+        <input type="date" class="form-control" id="manufactured_date" name="manufactured_date">
+    </div>
+    <div class="mb-3">
+        <label for="expiration_date" class="form-label">Expiration Date</label>
+        <input type="date" class="form-control" id="expiration_date" name="expiration_date">
+    </div>
+    <div class="mb-3">
+        <label for="notes" class="form-label">Notes</label>
+        <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Add Item</button>
+    <a href="/" class="btn btn-secondary">Cancel</a>
     </form>
+
+    <!-- Barcode Scanner Script -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const videoElement = document.getElementById("scanner");
+        const barcodeResultElement = document.getElementById('barcode-result');
+        const manualBarcodeInput = document.getElementById('manual-barcode');
+        const barcodeUploadInput = document.getElementById('barcode-upload');
+        let mediaStream = null;
+
+        const startBtn = document.getElementById("start-scanner");
+        const stopBtn = document.getElementById("stop-scanner");
+
+        startBtn.addEventListener("click", startScanner);
+        stopBtn.addEventListener("click", stopScanner);
+
+        function startScanner() {
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                .then(function (stream) {
+                    mediaStream = stream;
+                    videoElement.srcObject = stream;
+
+                    Quagga.init({
+                        inputStream: {
+                            name: "Live",
+                            type: "LiveStream",
+                            target: videoElement,
+                            constraints: {
+                                facingMode: "environment"
+                            }
+                        },
+                        decoder: {
+                            readers: [
+                                "ean_reader",
+                                "upc_reader",
+                                "upc_e_reader",
+                                "code_128_reader",
+                                "code_39_reader"
+                            ]
+                        }
+                    }, function (err) {
+                        if (err) {
+                            console.error("Quagga init error:", err);
+                            return;
+                        }
+                        Quagga.start();
+                    });
+                })
+                .catch(function (err) {
+                    console.error("Camera access error: ", err);
+                    alert("Camera permission is required.");
+                });
+        }
+
+        function stopScanner() {
+            Quagga.stop();
+
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                videoElement.srcObject = null;
+                mediaStream = null;
+            }
+        }
+
+        Quagga.onDetected(function (result) {
+            const barcode = result.codeResult.code;
+            if (barcode) {
+                barcodeResultElement.textContent = barcode;
+                fetchProductDetails(barcode);
+            }
+        });
+
+        manualBarcodeInput.addEventListener('input', function () {
+            const manualBarcode = manualBarcodeInput.value.trim();
+            if (manualBarcode) {
+                barcodeResultElement.textContent = manualBarcode;
+                fetchProductDetails(manualBarcode);
+            }
+        });
+
+        barcodeUploadInput.addEventListener('change', function (event) {
+    const file = event.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            Quagga.decodeSingle({
+                src: e.target.result,
+                numOfWorkers: 0,
+                inputStream: {
+                    size: 800  // optional
+                },
+                decoder: {
+                    readers: ["ean_reader", "upc_reader", "code_128_reader", "code_39_reader"]
+                }
+            }, function(result) {
+                if (result && result.codeResult) {
+                    const barcode = result.codeResult.code;
+                    barcodeResultElement.textContent = barcode;
+                    fetchProductDetails(barcode);
+                } else {
+                    alert("Barcode not detected in image.");
+                }
+            });
+        };
+        reader.readAsDataURL(file);
+    } else if (file && file.type === 'text/plain') {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const barcode = e.target.result.trim();
+            barcodeResultElement.textContent = barcode;
+            fetchProductDetails(barcode);
+        };
+        reader.readAsText(file);
+    } else {
+        alert("Unsupported file type. Please upload a .txt or image file.");
+    }
+});
+
+
+        function fetchProductDetails(barcode) {
+            fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 1 && data.product) {
+                        const product = data.product;
+                        if (product.product_name) {
+                            document.getElementById('name').value = product.product_name;
+                        }
+                        if (product.generic_name) {
+                            document.getElementById('notes').value = product.generic_name;
+                        }
+                    } else {
+                        alert("Product not found.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Fetch error:", error);
+                    alert("Error fetching product details.");
+                });
+        }
+    });
+</script>
+
+
+
+
 {% endblock %}
